@@ -146,7 +146,7 @@ end)
 if queue_on_teleport then
 	queue_on_teleport([[
 		loadstring(game:HttpGet(
-			"https://raw.githubusercontent.com/USERNAME/rinolive-notifier-delta/main/notifier.lua"
+			"https://raw.githubusercontent.com/nguyenhuynhquocvuong07xel-cell/rinolive-notifiercitydelta/main/notifier.lua"
 		))()
 	]])
 end
