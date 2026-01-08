@@ -1,0 +1,154 @@
+--================ RINOLIVE FINAL | BRAINROT ONLY | DELTA 24/24 =================
+repeat task.wait() until game:IsLoaded()
+task.wait(3)
+
+local Players = game:GetService("Players")
+local TeleportService = game:GetService("TeleportService")
+local HttpService = game:GetService("HttpService")
+local LP = Players.LocalPlayer
+
+--================ CONFIG =================
+local WEBHOOK = "https://discord.com/api/webhooks/1449391153064575148/rIt_v0jashDSj6Y4DpfZ_ZyROYmTW7WY6Wok9KmXvJQHiUtciFrYaWWnQUdjo0ePJ1lj"
+local MIN_MONEY = 10_000_000
+local SCAN_DELAY = 4
+local HOP_DELAY = 20 -- delta hop 20s là ổn
+--========================================
+
+-- DELTA request (KHÔNG XENO)
+local requestFunc = request or http_request
+local sentServer = {}
+
+--================ BLACKLIST =================
+local BLACKLIST = {
+	["radioactive slap"] = true,
+	["radioactive"] = true,
+	["slap"] = true
+}
+
+-------------------------------------------------
+local function fmt(n)
+	if n >= 1e9 then return string.format("%.1fB", n/1e9) end
+	if n >= 1e6 then return string.format("%.1fM", n/1e6) end
+	return tostring(n)
+end
+
+local function getPlayerCount()
+	return #Players:GetPlayers(), Players.MaxPlayers
+end
+
+-------------------------------------------------
+local function getPetName(label)
+	local gui =
+		label:FindFirstAncestorWhichIsA("BillboardGui")
+		or label:FindFirstAncestorWhichIsA("SurfaceGui")
+
+	if not gui then return end
+
+	for _, v in ipairs(gui:GetDescendants()) do
+		if v:IsA("TextLabel") then
+			local t = v.Text
+			if t
+			and #t > 2
+			and not t:find("%d")
+			and not t:find("/s")
+			and not t:lower():find("workspace")
+			and not t:lower():find("animal")
+			then
+				return t
+			end
+		end
+	end
+end
+
+-------------------------------------------------
+-- SCAN
+-------------------------------------------------
+local function scanServer()
+	local pets = {}
+
+	for _, v in ipairs(workspace:GetDescendants()) do
+		if v:IsA("TextLabel") then
+			local t = v.Text
+			if t and t:find("/s") and (t:find("M") or t:find("B")) then
+				local num = tonumber(t:match("[%d%.]+"))
+				if num then
+					num = t:find("B") and num*1e9 or num*1e6
+					if num >= MIN_MONEY then
+						local name = getPetName(v)
+						if name and not BLACKLIST[name:lower()] then
+							table.insert(pets, {name=name, money=num})
+						end
+					end
+				end
+			end
+		end
+	end
+
+	if #pets == 0 then return end
+	if sentServer[game.JobId] then return end
+	sentServer[game.JobId] = true
+
+	local cur, max = getPlayerCount()
+	local desc = "👥 Players: "..cur.."/"..max.."\n\n🏷️ Name | 💰 Money/s\n"
+
+	for _, p in ipairs(pets) do
+		desc ..= p.name.." — $"..fmt(p.money).."/s\n"
+	end
+
+	local joinScript =
+	"game:GetService('TeleportService'):TeleportToPlaceInstance("
+	..game.PlaceId..", '"..game.JobId.."', game.Players.LocalPlayer)"
+
+	if requestFunc then
+		requestFunc({
+			Url = WEBHOOK,
+			Method = "POST",
+			Headers = {["Content-Type"]="application/json"},
+			Body = HttpService:JSONEncode({
+				embeds = {{
+					title = "Brainrot Notify | RINOLIVE DELTA",
+					color = 0x3498db,
+					description = desc,
+					fields = {
+						{name="🆔 Job ID", value=game.JobId},
+						{name="📜 Join Script", value="```lua\n"..joinScript.."\n```"}
+					},
+					footer = {text="RINOLIVE | "..os.date("%H:%M")}
+				}}
+			})
+		})
+	end
+end
+
+-------------------------------------------------
+-- AUTO SCAN
+-------------------------------------------------
+task.spawn(function()
+	while true do
+		pcall(scanServer)
+		task.wait(SCAN_DELAY)
+	end
+end)
+
+-------------------------------------------------
+-- AUTO HOP
+-------------------------------------------------
+task.spawn(function()
+	while true do
+		task.wait(HOP_DELAY)
+		TeleportService:Teleport(game.PlaceId, LP)
+	end
+end)
+
+-------------------------------------------------
+-- 🔥 DELTA FIX: AUTO LOAD LẠI SAU TELEPORT
+-------------------------------------------------
+if queue_on_teleport then
+	queue_on_teleport([[
+		loadstring(game:HttpGet(
+			"https://raw.githubusercontent.com/USERNAME/rinolive-notifier-delta/main/notifier.lua"
+		))()
+	]])
+end
+
+print("✅ RINOLIVE DELTA | CHẠY 24/24 | AUTO HOP | KHÔNG CHẾT SCRIPT")
