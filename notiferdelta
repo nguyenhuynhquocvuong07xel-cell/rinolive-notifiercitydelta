@@ -30,7 +30,7 @@ local sentServer = {}
 local BLACKLIST = {
 	["radioactive slap"] = true,
 	["radioactive"] = true,
-	["slap"] = true
+	["slap"] = true,
 	["radioactive airstrike"] = true,
 	["airstrike"] = true,
 }
