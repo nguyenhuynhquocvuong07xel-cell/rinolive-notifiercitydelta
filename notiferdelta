@@ -1,4 +1,11 @@
---================ RINOLIVE FINAL | BRAINROT ONLY | DELTA 24/24 =================
+--==================================================
+-- RINOLIVE DELTA 24/24 | SAFE GUARD (CHỐNG LOAD TRÙNG)
+--==================================================
+if getgenv().__RinoNotifierStarted then
+	return
+end
+getgenv().__RinoNotifierStarted = true
+
 repeat task.wait() until game:IsLoaded()
 task.wait(3)
 
@@ -11,11 +18,12 @@ local LP = Players.LocalPlayer
 local WEBHOOK = "https://discord.com/api/webhooks/1449391153064575148/rIt_v0jashDSj6Y4DpfZ_ZyROYmTW7WY6Wok9KmXvJQHiUtciFrYaWWnQUdjo0ePJ1lj"
 local MIN_MONEY = 10_000_000
 local SCAN_DELAY = 4
-local HOP_DELAY = 20 -- delta hop 20s là ổn
+local HOP_DELAY  = 20 -- DELTA hop 20s là ổn
 --========================================
 
--- DELTA request (KHÔNG XENO)
+-- DELTA request (KHÔNG CẦN syn)
 local requestFunc = request or http_request
+
 local sentServer = {}
 
 --================ BLACKLIST =================
@@ -26,23 +34,30 @@ local BLACKLIST = {
 }
 
 -------------------------------------------------
+-- FORMAT MONEY
+-------------------------------------------------
 local function fmt(n)
 	if n >= 1e9 then return string.format("%.1fB", n/1e9) end
 	if n >= 1e6 then return string.format("%.1fM", n/1e6) end
 	return tostring(n)
 end
 
+-------------------------------------------------
+-- PLAYER COUNT
+-------------------------------------------------
 local function getPlayerCount()
 	return #Players:GetPlayers(), Players.MaxPlayers
 end
 
+-------------------------------------------------
+-- LẤY TÊN PET THẬT
 -------------------------------------------------
 local function getPetName(label)
 	local gui =
 		label:FindFirstAncestorWhichIsA("BillboardGui")
 		or label:FindFirstAncestorWhichIsA("SurfaceGui")
 
-	if not gui then return end
+	if not gui then return nil end
 
 	for _, v in ipairs(gui:GetDescendants()) do
 		if v:IsA("TextLabel") then
@@ -58,10 +73,11 @@ local function getPetName(label)
 			end
 		end
 	end
+	return nil
 end
 
 -------------------------------------------------
--- SCAN
+-- SCAN BRAINROT
 -------------------------------------------------
 local function scanServer()
 	local pets = {}
@@ -72,11 +88,11 @@ local function scanServer()
 			if t and t:find("/s") and (t:find("M") or t:find("B")) then
 				local num = tonumber(t:match("[%d%.]+"))
 				if num then
-					num = t:find("B") and num*1e9 or num*1e6
-					if num >= MIN_MONEY then
+					if t:find("B") then num *= 1e9 else num *= 1e6 end
+					if num >= MIN_MONEY and num < 1e12 then
 						local name = getPetName(v)
 						if name and not BLACKLIST[name:lower()] then
-							table.insert(pets, {name=name, money=num})
+							table.insert(pets, { name = name, money = num })
 						end
 					end
 				end
@@ -89,11 +105,15 @@ local function scanServer()
 	sentServer[game.JobId] = true
 
 	local cur, max = getPlayerCount()
-	local desc = "👥 Players: "..cur.."/"..max.."\n\n🏷️ Name | 💰 Money/s\n"
 
+	local desc = "👥 Players: "..cur.."/"..max.."\n\n🏷️ Name | 💰 Money/s\n"
 	for _, p in ipairs(pets) do
 		desc ..= p.name.." — $"..fmt(p.money).."/s\n"
 	end
+
+	local joinLink =
+	"https://chillihub1.github.io/chillihub-joiner/?placeId="
+	..game.PlaceId.."&gameInstanceId="..game.JobId
 
 	local joinScript =
 	"game:GetService('TeleportService'):TeleportToPlaceInstance("
@@ -106,12 +126,13 @@ local function scanServer()
 			Headers = {["Content-Type"]="application/json"},
 			Body = HttpService:JSONEncode({
 				embeds = {{
-					title = "Brainrot Notify | RINOLIVE DELTA",
-					color = 0x3498db,
+					title = "Brainrot Notify | RINOLIVE (DELTA)",
+					color = 0x2ecc71,
 					description = desc,
 					fields = {
-						{name="🆔 Job ID", value=game.JobId},
-						{name="📜 Join Script", value="```lua\n"..joinScript.."\n```"}
+						{name="🆔 Job ID", value=game.JobId, inline=false},
+						{name="🌐 Join Server", value="[JOIN]("..joinLink..")", inline=false},
+						{name="📜 Join Script", value="```lua\n"..joinScript.."\n```", inline=false}
 					},
 					footer = {text="RINOLIVE | "..os.date("%H:%M")}
 				}}
@@ -133,6 +154,11 @@ end)
 -------------------------------------------------
 -- AUTO HOP
 -------------------------------------------------
+TeleportService.TeleportInitFailed:Connect(function()
+	task.wait(5)
+	TeleportService:Teleport(game.PlaceId, LP)
+end)
+
 task.spawn(function()
 	while true do
 		task.wait(HOP_DELAY)
@@ -141,14 +167,17 @@ task.spawn(function()
 end)
 
 -------------------------------------------------
--- 🔥 DELTA FIX: AUTO LOAD LẠI SAU TELEPORT
+-- 🔁 AUTO LOAD LẠI SAU TELEPORT (DELTA 24/24)
 -------------------------------------------------
 if queue_on_teleport then
 	queue_on_teleport([[
+		if getgenv().__RinoNotifierStarted then return end
+		getgenv().__RinoNotifierStarted = true
 		loadstring(game:HttpGet(
-			"https://raw.githubusercontent.com/nguyenhuynhquocvuong07xel-cell/rinolive-notifiercitydelta/main/notifier.lua"
+			"https://raw.githubusercontent.com/nguyenhuynhquocvuong07xel-cell/rinolive-notifiercitydelta/main/notifier.lua",
+			true
 		))()
 	]])
 end
 
-print("✅ RINOLIVE DELTA | CHẠY 24/24 | AUTO HOP | KHÔNG CHẾT SCRIPT")
+print("✅ RINOLIVE DELTA | AUTO LOAD | 24/24 | KHÔNG NHÂN SCRIPT")
