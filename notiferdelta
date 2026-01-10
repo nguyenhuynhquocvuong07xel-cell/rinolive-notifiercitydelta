@@ -174,7 +174,7 @@ if queue_on_teleport then
 		if getgenv().__RinoNotifierStarted then return end
 		getgenv().__RinoNotifierStarted = true
 		loadstring(game:HttpGet(
-			"https://raw.githubusercontent.com/nguyenhuynhquocvuong07xel-cell/rinolive-notifiercitydelta/main/notifier.lua",
+			"https://raw.githubusercontent.com/nguyenhuynhquocvuong07xel-cell/rinolive-notifiercitydelta/refs/heads/main/notiferdelta",
 			true
 		))()
 	]])
